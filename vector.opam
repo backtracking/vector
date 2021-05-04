@@ -10,6 +10,7 @@ bug-reports: "https://github.com/backtracking/vector/issues"
 depends: [
   "ocaml"
   "dune" {>= "2.0.0"}
+  "nullable-array"
 ]
 build: [
   ["dune" "subst"] {dev}

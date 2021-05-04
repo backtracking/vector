@@ -22,10 +22,9 @@
     growing the array (and shrinks it whenever the number of elements
     comes to one fourth of the capacity).
 
-    The unused part of the internal array is filled with a dummy value,
-    which is user-provided at creation time (and referred to below
-    as ``the dummy value''). Consequently, vectors do not retain pointers
-    to values that are not used anymore after a shrinking.
+    The unused part of the internal array has an unspecified but stable
+    representation. Consequently, vectors do not retain pointers to
+    values that are not used anymore after a shrinking.
 
     Vectors provide an efficient implementation of stacks, with a
     better locality of reference than list-based implementations (such
@@ -43,37 +42,44 @@ type 'a t
 (** {2 Operations proper to vectors, or with a different type and/or
     semantics than those of module [Array]} *)
 
-val make: int -> dummy:'a -> 'a t
-(** [Vector.make n dummy] returns a fresh vector of length [n].
+val make: int -> 'a -> 'a t
+(** [Vector.make n v] returns a fresh vector of length [n].
    All the elements of this new vector are initially
-   physically equal to [dummy] (in the sense of the [==] predicate).
+   physically equal to [v] (in the sense of the [==] predicate).
 
-   Raise [Invalid_argument] if [n < 0] or [n > Sys.max_array_length].
-   If the value of [dummy] is a floating-point number, then the maximum
-   size is only [Sys.max_array_length / 2].*)
+   Raise [Invalid_argument] if [n < 0] or [n >= Sys.max_array_length]. *)
 
-val create: dummy:'a -> 'a t
-(** [Vector.create dummy] returns a fresh vector of length [0]. *)
+val create: unit -> 'a t
+(** [Vector.create ()] returns a fresh vector of length [0]. *)
 
-val init: int -> dummy:'a -> (int -> 'a) -> 'a t
+val init: int -> (int -> 'a) -> 'a t
 (** [Vector.init n f] returns a fresh vector of length [n],
    with element number [i] initialized to the result of [f i].
    In other terms, [Vector.init n f] tabulates the results of [f]
    applied to the integers [0] to [n-1].
 
-   Raise [Invalid_argument] if [n < 0] or [n > Sys.max_array_length].
-   If the return type of [f] is [float], then the maximum
-   size is only [Sys.max_array_length / 2].*)
+   Raise [Invalid_argument] if [n < 0] or [n >= Sys.max_array_length]. *)
 
-val resize: 'a t -> int -> unit
-(** [Vector.resize a n] sets the length of vector [a] to [n].
+val resize: 'a t -> int -> 'a -> unit
+(** [Vector.resize a n v] sets the length of vector [a] to [n].
+    If [n > Vector.length a], the new elements in the vector are
+    initially physically equal to [v].
 
    The elements that are no longer part of the vector, if any, are
-   internally replaced by the dummy value of vector [a], so that they
+   cleared from the internal representation, so that they
    can be garbage collected when possible.
 
-   Raise [Invalid_argument] if [n < 0] or [n > Sys.max_array_length]. *)
+   Raise [Invalid_argument] if [n < 0] or [n >= Sys.max_array_length]. *)
 
+val shrink: 'a t -> int -> unit
+(** [Vector.shrink a n] reduces the length of vector [a] to be at most [n].
+    If [n >= Vector.length a], this operation has no effect.
+
+    The elements that are no longer part of the vector, if any, are
+    cleared from the internal representation, so that they
+    can be garbage collected when possible.
+
+    Raise [Invalid_argument] if [n < 0]. *)
 
 (** {2 Stack interface}
 
@@ -110,7 +116,7 @@ val is_empty: 'a t -> bool
 
 val length: 'a t -> int
 (** Return the length (number of elements) of the given vector.
-    Note: the number of memory words occupiedby the vector can be larger. *)
+    Note: the number of memory words occupied by the vector can be larger. *)
 
 val get: 'a t -> int -> 'a
 (** [Vector.get a n] returns the element number [n] of vector [a].
@@ -161,15 +167,15 @@ val blit : 'a t -> int -> 'a t -> int -> int -> unit
 val to_list : 'a t -> 'a list
 (** [Vector.to_list a] returns the list of all the elements of [a]. *)
 
-val of_list: dummy:'a -> 'a list -> 'a t
-(** [Vector.of_list dummy l] returns a fresh vector containing the elements
+val of_list: 'a list -> 'a t
+(** [Vector.of_list l] returns a fresh vector containing the elements
     of [l]. *)
 
 val to_array: 'a t -> 'a array
 (** [Vector.to_array a] returns the array of all the elements of [a]. *)
 
-val of_array: dummy:'a -> 'a array -> 'a t
-(** [Vector.of_array dummy a] returns a fresh vector containing the elements
+val of_array: 'a array -> 'a t
+(** [Vector.of_array a] returns a fresh vector containing the elements
     of [a]. *)
 
 val iter : ('a -> unit) -> 'a t -> unit
@@ -179,12 +185,7 @@ val iter : ('a -> unit) -> 'a t -> unit
 
 val map : ('a -> 'b) -> 'a t -> 'b t
 (** [Vector.map f a] applies function [f] to all the elements of [a],
-   and builds a fresh vector with the results returned by [f].
-
-   Note: the dummy value of the returned vector is obtained by applying
-   [f] to the dummy value of [a]. If this is not what you want,
-   first create a new vector and then fill it with the value
-   [f (get a 0)], [f (get a 1)], etc. *)
+   and builds a fresh vector with the results returned by [f]. *)
 
 val iteri : (int -> 'a -> unit) -> 'a t -> unit
 (** Same as {!Vector.iter}, but the
@@ -194,10 +195,7 @@ val iteri : (int -> 'a -> unit) -> 'a t -> unit
 val mapi : (int -> 'a -> 'b) -> 'a t -> 'b t
 (** Same as {!Vector.map}, but the
    function is applied to the index of the element as first argument,
-   and the element itself as second argument.
-
-   Note: the dummy value of the returned vector is obtained by applying
-   [f 0] to the dummy value of [a].  *)
+   and the element itself as second argument. *)
 
 val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b t -> 'a
 (** [Vector.fold_left f x a] computes

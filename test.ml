@@ -3,7 +3,7 @@ open Format
 open Vector
 
 let () =
-  let v = make 0 ~dummy:42 in
+  let v = create () in
   push v 17;
   push v 2;
   assert (length v = 2);
@@ -13,7 +13,7 @@ let () =
 
 let () =
   let n = 20 in
-  let v = make 1 ~dummy:0 in
+  let v = make 1 0 in
   push v 1;
   for i = 2 to n do push v (get v (i-2) + get v (i-1)) done;
   assert (length v = n+1);
@@ -23,7 +23,7 @@ let () =
 (* stack *)
 
 let () =
-  let s = create ~dummy:42 in
+  let s = create () in
   push s 1;
   assert (top s = 1);
   push s 2;
@@ -40,8 +40,8 @@ let () =
   ()
 
 let () =
-  let v = make 12 ~dummy:() in
-  for i = 0 to 1000 do resize v i done;
-  for i = 1000 downto 0 do resize v i done;
-  for _ = 1 to 1000 do resize v (Random.int 10_000) done;
+  let v = make 12 () in
+  for i = 0 to 1000 do resize v i () done;
+  for i = 1000 downto 0 do shrink v i done;
+  for _ = 1 to 1000 do resize v (Random.int 10_000) () done;
   ()
