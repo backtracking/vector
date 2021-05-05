@@ -77,7 +77,7 @@ val resize: 'a t -> int -> unit
 
 (** {2 Stack interface}
 
-    Contrary to standard library's {Stack}, module {Vector} uses less space
+    Contrary to standard library's {!Stack}, module [Vector] uses less space
     (between N and 2N words, instead of 3N) and has better data locality. *)
 
 val push: 'a t -> 'a -> unit
