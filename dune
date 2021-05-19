@@ -1,6 +1,7 @@
 (library
  (public_name vector)
- (modules vector))
+ (modules vector)
+ (libraries nullable-array))
 
 (test
  (name test)

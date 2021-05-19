@@ -10,6 +10,7 @@ bug-reports: "https://github.com/backtracking/vector/issues"
 depends: [
   "ocaml"
   "dune" {>= "2.0.0"}
+  "nullable-array"
 ]
 build: [
   ["dune" "subst"] {dev}
@@ -17,3 +18,8 @@ build: [
   ["dune" "runtest" "-p" name "-j" jobs] {with-test}
 ]
 dev-repo: "git+https://github.com/backtracking/vector.git"
+
+# TODO: not to be merged. Remove once https://github.com/chambart/ocaml-nullable-array/pull/1 is released
+pin-depends: [
+  [ "nullable-array.dev" "git+https://github.com/craigfe/ocaml-nullable-array#70f8ebe331895daea7519031ddc87ddc52175756" ]
+]
